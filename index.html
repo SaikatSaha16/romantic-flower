@@ -1472,14 +1472,25 @@
                 // Hide Yes/No buttons
                 popupButtons.style.display = 'none';
                 
+                // Show cute message under the second picture
+                const cuteMessage = document.getElementById('cute-message');
+                cuteMessage.textContent = "Isn't this cute? Gemini created this! 💖✨";
+                cuteMessage.classList.remove('hidden');
+                cuteMessage.classList.add('animate');
+                
                 // Hide another button, show a close/done button behavior
-                anotherBtn.textContent = 'Thank you Puchu 💕🌷';
+                anotherBtn.textContent = 'Thank you! 💕🌷';
                 anotherBtn.classList.remove('hidden');
                 
             } else if (AppState.currentPopup === 'second') {
                 // Close the popup and reset for new cycle
                 popupModal.classList.add('hidden');
                 AppState.currentPopup = null;
+                
+                // Hide the cute message
+                const cuteMessage = document.getElementById('cute-message');
+                cuteMessage.classList.add('hidden');
+                cuteMessage.classList.remove('animate');
                 
                 // Reset flower count and state to start fresh
                 AppState.flowerCount = 0;
