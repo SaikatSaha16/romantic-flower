@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flower Garden 🌷</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Georgia', 'Times New Roman', serif;
+        }
+
+        body {
+            background-color: #000;
+            touch-action: manipulation;
+        }
+
+        /* Message Display */
+        #message-display {
+            position: fixed;
+            top: 5vh;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffb6c1;
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            text-align: center;
+            z-index: 10;
+            text-shadow: 0 0 10px rgba(255, 182, 193, 0.5);
+            padding: 0.5rem 1rem;
+        }
+
+        /* Flower Canvas */
+        #flower-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000;
+            cursor: pointer;
+        }
+
+        /* Flower Vase */
+        #flower-vase {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .vase-body {
+            width: 120px;
+            height: 140px;
+            background: linear-gradient(135deg, #8b4513 0%, #d2691e 50%, #8b4513 100%);
+            border-radius: 0 0 60px 60px;
+            position: relative;
+            box-shadow: inset -10px 0 20px rgba(0, 0, 0, 0.3),
+                        inset 10px 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        .vase-rim {
+            width: 130px;
+            height: 20px;
+            background: linear-gradient(135deg, #a0522d 0%, #cd853f 50%, #a0522d 100%);
+            border-radius: 5px 5px 0 0;
+            position: absolute;
+            bottom: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Connection points where stems meet - invisible, inside the pot */
+        .vase-connection-point {
+            width: 1px;
+            height: 1px;
+            background: transparent;
+            position: absolute;
+            z-index: 1;
+        }
+        
+        /* Left connection point - inside pot body */
+        .vase-connection-left {
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-15px);
+        }
+        
+        /* Right connection point - inside pot body */
+        .vase-connection-right {
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(15px);
+        }
+
+        /* Tulip Flower Styles */
+        .tulip {
+            position: absolute;
+            transform-origin: top center;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .tulip-stem {
+            width: 4px;
+            background: linear-gradient(to bottom, #32cd32, #228b22);
+            border-radius: 2px;
+        }
+
+        .tulip-head {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .tulip-petal {
+            position: absolute;
+            width: 14px;
+            height: 28px;
+            border-radius: 50% 50% 45% 45%;
+            transform-origin: bottom center;
+        }
+
+        /* Open tulip - petals spread outward */
+        .tulip-open .tulip-petal:nth-child(1) {
+            transform: translateX(-50%) rotate(-35deg);
+            left: 30%;
+        }
+
+        .tulip-open .tulip-petal:nth-child(2) {
+            transform: translateX(-50%) rotate(35deg);
+            left: 70%;
+        }
+
+        .tulip-open .tulip-petal:nth-child(3) {
+            transform: translateX(-50%) rotate(-15deg);
+            left: 40%;
+            z-index: 1;
+        }
+
+        .tulip-open .tulip-petal:nth-child(4) {
+            transform: translateX(-50%) rotate(15deg);
+            left: 60%;
+            z-index: 1;
+        }
+
+        .tulip-open .tulip-petal:nth-child(5) {
+            transform: translateX(-50%);
+            left: 50%;
+            z-index: 2;
+        }
+
+        /* Closed tulip - petals together */
+        .tulip-closed .tulip-petal:nth-child(1) {
+            transform: translateX(-50%) rotate(-8deg);
+            left: 45%;
+        }
+
+        .tulip-closed .tulip-petal:nth-child(2) {
+            transform: translateX(-50%) rotate(8deg);
+            left: 55%;
+        }
+
+        .tulip-closed .tulip-petal:nth-child(3) {
+            transform: translateX(-50%) rotate(-3deg);
+            left: 48%;
+            z-index: 1;
+        }
+
+        .tulip-closed .tulip-petal:nth-child(4) {
+            transform: translateX(-50%) rotate(3deg);
+            left: 52%;
+            z-index: 1;
+        }
+
+        .tulip-closed .tulip-petal:nth-child(5) {
+            transform: translateX(-50%);
+            left: 50%;
+            z-index: 2;
+        }
+
+        /* Tulip Colors */
+        .tulip-red .tulip-petal {
+            background: linear-gradient(to bottom, #ff6b6b, #dc143c);
+        }
+
+        .tulip-pink .tulip-petal {
+            background: linear-gradient(to bottom, #ffb6c1, #ff69b4);
+        }
+
+        .tulip-yellow .tulip-petal {
+            background: linear-gradient(to bottom, #ffec8b, #ffd700);
+        }
+
+        .tulip-purple .tulip-petal {
+            background: linear-gradient(to bottom, #da70d6, #9932cc);
+        }
+
+        .tulip-white .tulip-petal {
+            background: linear-gradient(to bottom, #ffffff, #f5f5f5);
+        }
+
+        /* Tulip Sizes - only medium and large */
+        .tulip-medium {
+            transform: scale(1);
+        }
+
+        .tulip-large {
+            transform: scale(1.3);
+        }
+
+        /* Tulip stem heights are set dynamically in JavaScript to reach the vase */
+
+        /* Bloom Animation */
+        @keyframes bloom {
+            0% {
+                transform: scale(0) translateY(20px);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1) translateY(-5px);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .tulip.blooming {
+            animation: bloom 0.6s ease-out forwards;
+        }
+
+        .tulip-large.blooming {
+            animation: bloom-large 0.6s ease-out forwards;
+        }
+
+        @keyframes bloom-large {
+            0% {
+                transform: scale(0) translateY(20px);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.5) translateY(-5px);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.4) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Popup Modal */
+        #popup-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        #popup-modal.hidden {
+            display: none;
+        }
+
+        .popup-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 182, 193, 0.3);
+            border: 2px solid rgba(255, 182, 193, 0.2);
+        }
+
+        #popup-image {
+            max-width: 100%;
+            max-height: 60vh;
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .popup-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            margin-top: 1rem;
+            position: relative;
+            min-height: 80px;
+            padding: 10px;
+        }
+
+        .popup-buttons button {
+            padding: 0.8rem 2rem;
+            font-size: 1.2rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        #yes-btn {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+        }
+
+        #yes-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 105, 180, 0.6);
+        }
+
+        #no-btn {
+            background: linear-gradient(135deg, #666, #444);
+            color: white;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        /* Runaway button - switches to absolute positioning when active */
+        #no-btn.runaway-active {
+            position: absolute;
+            transition: left 0.15s ease-out, top 0.15s ease-out;
+        }
+
+        /* "Want to see another thing?" button - attractive styling */
+        #another-btn {
+            display: block;
+            margin: 1.5rem auto 0;
+            padding: 1rem 2rem;
+            font-size: 1.3rem;
+            font-family: inherit;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #ff69b4, #ff1493, #ff69b4);
+            background-size: 200% 200%;
+            color: white;
+            box-shadow: 0 4px 20px rgba(255, 105, 180, 0.5),
+                        0 0 30px rgba(255, 105, 180, 0.3);
+            animation: gradientShift 3s ease infinite, pulse 2s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+
+        #another-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 30px rgba(255, 105, 180, 0.7),
+                        0 0 40px rgba(255, 105, 180, 0.5);
+        }
+
+        #another-btn.hidden {
+            display: none;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        /* Hide popup image by default */
+        #popup-image.hidden {
+            display: none;
+        }
+
+        #cute-message {
+            color: #ffb6c1;
+            font-size: 1.3rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            text-shadow: 0 0 10px rgba(255, 182, 193, 0.5);
+            position: relative;
+        }
+
+        #cute-message.hidden {
+            display: none;
+        }
+
+        /* Heart animation container around cute message */
+        .cute-message-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .cute-message-container.hidden {
+            display: none;
+        }
+
+        /* Floating hearts around the cute message */
+        .floating-heart {
+            position: absolute;
+            font-size: 1.2rem;
+            opacity: 0;
+            animation: floatHeartAround 2s ease-in-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes floatHeartAround {
+            0% {
+                opacity: 0;
+                transform: translateY(0) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translateY(-10px) scale(1);
+            }
+            80% {
+                opacity: 1;
+                transform: translateY(-30px) scale(1.1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.8);
+            }
+        }
+
+        /* Different animation delays for each heart position */
+        .floating-heart:nth-child(1) { animation-delay: 0s; }
+        .floating-heart:nth-child(2) { animation-delay: 0.2s; }
+        .floating-heart:nth-child(3) { animation-delay: 0.4s; }
+        .floating-heart:nth-child(4) { animation-delay: 0.6s; }
+        .floating-heart:nth-child(5) { animation-delay: 0.1s; }
+        .floating-heart:nth-child(6) { animation-delay: 0.3s; }
+        .floating-heart:nth-child(7) { animation-delay: 0.5s; }
+        .floating-heart:nth-child(8) { animation-delay: 0.7s; }
+
+        /* Pulse animation for the message text */
+        @keyframes messagePulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        #cute-message.animate {
+            animation: messagePulse 0.8s ease-in-out infinite;
+        }
+
+        /* Floating hearts container */
+        #floating-hearts-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        /* Popup fade-in animation */
+        @keyframes popupFadeIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .popup-content {
+            animation: popupFadeIn 0.4s ease-out forwards;
+        }
+
+        /* Heart decorations around popup */
+        .popup-hearts {
+            position: absolute;
+            font-size: 1.5rem;
+            animation: floatHeart 2s ease-in-out infinite;
+        }
+
+        @keyframes floatHeart {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(10deg); }
+        }
+
+        .popup-title {
+            color: #ffb6c1;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 15px rgba(255, 182, 193, 0.6);
+        }
+
+        /* Leaf decoration for tulips */
+        .tulip-leaf {
+            position: absolute;
+            width: 8px;
+            height: 20px;
+            background: linear-gradient(to bottom, #32cd32, #228b22);
+            border-radius: 50% 50% 50% 50%;
+            transform-origin: top center;
+        }
+        
+        /* Leaf positions and rotations are set dynamically in JavaScript */
+
+        /* ============================================
+           Visual Polish - Task 8.1
+           Requirements: 8.4
+           ============================================ */
+
+        /* Enhanced Tulip Colors with Gradients and Glow */
+        .tulip-red .tulip-petal {
+            background: linear-gradient(135deg, #ff8a8a 0%, #ff6b6b 30%, #dc143c 70%, #b01030 100%);
+            box-shadow: 0 0 8px rgba(255, 107, 107, 0.4),
+                        inset 0 -5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tulip-pink .tulip-petal {
+            background: linear-gradient(135deg, #ffd1dc 0%, #ffb6c1 30%, #ff69b4 70%, #ff1493 100%);
+            box-shadow: 0 0 8px rgba(255, 182, 193, 0.5),
+                        inset 0 -5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tulip-yellow .tulip-petal {
+            background: linear-gradient(135deg, #fffacd 0%, #ffec8b 30%, #ffd700 70%, #ffb700 100%);
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.5),
+                        inset 0 -5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tulip-purple .tulip-petal {
+            background: linear-gradient(135deg, #e6b3ff 0%, #da70d6 30%, #9932cc 70%, #7b1fa2 100%);
+            box-shadow: 0 0 8px rgba(218, 112, 214, 0.5),
+                        inset 0 -5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tulip-white .tulip-petal {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f8ff 30%, #f0f0f5 70%, #e8e8f0 100%);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.6),
+                        inset 0 -5px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Enhanced stem with gradient */
+        .tulip-stem {
+            background: linear-gradient(to right, #228b22 0%, #32cd32 50%, #228b22 100%);
+            box-shadow: 1px 0 3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Enhanced leaf with gradient */
+        .tulip-leaf {
+            background: linear-gradient(135deg, #3cb371 0%, #32cd32 40%, #228b22 100%);
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Soft glow effect on flowers */
+        .tulip {
+            filter: drop-shadow(0 0 6px rgba(255, 182, 193, 0.3));
+        }
+
+        .tulip-red {
+            filter: drop-shadow(0 0 8px rgba(220, 20, 60, 0.4));
+        }
+
+        .tulip-pink {
+            filter: drop-shadow(0 0 8px rgba(255, 105, 180, 0.4));
+        }
+
+        .tulip-yellow {
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
+        }
+
+        .tulip-purple {
+            filter: drop-shadow(0 0 8px rgba(153, 50, 204, 0.4));
+        }
+
+        .tulip-white {
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+        }
+
+        /* Sparkle/Particle Effects */
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .sparkle-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff 0%, #ffb6c1 50%, transparent 100%);
+            animation: sparkleFloat 1.2s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes sparkleFloat {
+            0% {
+                opacity: 0;
+                transform: scale(0) translateY(0);
+            }
+            20% {
+                opacity: 1;
+                transform: scale(1) translateY(-5px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.3) translateY(-40px);
+            }
+        }
+
+        /* Star-shaped sparkles */
+        .sparkle-star {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: transparent;
+            animation: sparkleStar 1s ease-out forwards;
+            opacity: 0;
+        }
+
+        .sparkle-star::before,
+        .sparkle-star::after {
+            content: '';
+            position: absolute;
+            background: #fff;
+        }
+
+        .sparkle-star::before {
+            width: 8px;
+            height: 2px;
+            top: 3px;
+            left: 0;
+            border-radius: 1px;
+            box-shadow: 0 0 4px #ffb6c1;
+        }
+
+        .sparkle-star::after {
+            width: 2px;
+            height: 8px;
+            top: 0;
+            left: 3px;
+            border-radius: 1px;
+            box-shadow: 0 0 4px #ffb6c1;
+        }
+
+        @keyframes sparkleStar {
+            0% {
+                opacity: 0;
+                transform: scale(0) rotate(0deg);
+            }
+            30% {
+                opacity: 1;
+                transform: scale(1.2) rotate(45deg);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) rotate(90deg);
+            }
+        }
+
+        /* Enhanced bloom animation with glow pulse */
+        @keyframes bloom {
+            0% {
+                transform: scale(0) translateY(20px);
+                opacity: 0;
+                filter: drop-shadow(0 0 0 transparent);
+            }
+            50% {
+                transform: scale(1.1) translateY(-5px);
+                opacity: 1;
+                filter: drop-shadow(0 0 15px rgba(255, 182, 193, 0.6));
+            }
+            100% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bloom-large {
+            0% {
+                transform: scale(0) translateY(20px);
+                opacity: 0;
+                filter: drop-shadow(0 0 0 transparent);
+            }
+            50% {
+                transform: scale(1.5) translateY(-5px);
+                opacity: 1;
+                filter: drop-shadow(0 0 20px rgba(255, 182, 193, 0.7));
+            }
+            100% {
+                transform: scale(1.4) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Subtle idle animation for flowers */
+        @keyframes gentleSway {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            50% {
+                transform: rotate(2deg);
+            }
+        }
+
+        .tulip.idle {
+            animation: gentleSway 3s ease-in-out infinite;
+        }
+
+        /* Enhanced vase with glow */
+        .vase-body {
+            box-shadow: inset -10px 0 20px rgba(0, 0, 0, 0.3),
+                        inset 10px 0 20px rgba(255, 255, 255, 0.1),
+                        0 0 20px rgba(139, 69, 19, 0.3);
+        }
+
+        /* Enhanced message display with glow */
+        #message-display {
+            text-shadow: 0 0 10px rgba(255, 182, 193, 0.5),
+                         0 0 20px rgba(255, 182, 193, 0.3),
+                         0 0 30px rgba(255, 182, 193, 0.2);
+            animation: messageGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes messageGlow {
+            0% {
+                text-shadow: 0 0 10px rgba(255, 182, 193, 0.5),
+                             0 0 20px rgba(255, 182, 193, 0.3);
+            }
+            100% {
+                text-shadow: 0 0 15px rgba(255, 182, 193, 0.7),
+                             0 0 30px rgba(255, 182, 193, 0.5),
+                             0 0 40px rgba(255, 182, 193, 0.3);
+            }
+        }
+
+        /* Ambient floating particles in background */
+        .ambient-particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 182, 193, 0.8) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+            animation: ambientFloat 8s ease-in-out infinite;
+        }
+
+        @keyframes ambientFloat {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0.3;
+            }
+            25% {
+                transform: translateY(-30px) translateX(10px);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateY(-50px) translateX(-5px);
+                opacity: 0.4;
+            }
+            75% {
+                transform: translateY(-20px) translateX(15px);
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Message Display Area -->
+    <div id="message-display">Tap to create flower 🌷</div>
+
+    <!-- Main Flower Canvas -->
+    <div id="flower-canvas">
+        <!-- Flowers will be dynamically added here -->
+    </div>
+
+    <!-- Flower Vase at Bottom -->
+    <div id="flower-vase">
+        <div class="vase-connection-point vase-connection-left"></div>
+        <div class="vase-connection-point vase-connection-right"></div>
+        <div class="vase-body"></div>
+        <div class="vase-rim"></div>
+    </div>
+
+    <!-- Image Popup Modal (hidden by default) -->
+    <div id="popup-modal" class="hidden">
+        <div class="popup-content">
+            <div class="popup-title" id="popup-title">💕 A Special Picture 💕</div>
+            <img id="popup-image" src="" alt="Special picture" class="hidden">
+            <div class="popup-buttons">
+                <button id="yes-btn">Yes 💕</button>
+                <button id="no-btn">No</button>
+            </div>
+            <button id="another-btn" class="hidden">Want to see another thing? 💕✨</button>
+            <div id="cute-message" class="hidden"></div>
+            <div id="floating-hearts-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        const AppState = {
+            flowerCount: 0,
+            flowers: [],
+            currentPopup: null,
+            hasSeenFirstImage: false,
+            hasSeenSecondImage: false,
+            lastTapTime: 0
+        };
+
+        // ============================================
+        // Image Configuration (Task 8.2)
+        // Requirements: 5.1, 6.3
+        // ============================================
+        // To add your own images:
+        // 1. Replace the URLs below with your image URLs, OR
+        // 2. Convert images to base64 and paste the data URLs
+        // 
+        // For base64: Use an online converter or run in browser console:
+        // const reader = new FileReader();
+        // reader.onload = () => console.log(reader.result);
+        // reader.readAsDataURL(yourImageFile);
+        
+        const ImageConfig = {
+            // First image - shown when 10 flowers are created
+            firstImage: {
+                src: 'First Image.jpg',
+                alt: 'First special picture together',
+                title: '💕 A Special Picture 💕'
+            },
+            // Second image - shown after clicking Yes on first popup
+            secondImage: {
+                src: 'Second Image.jpg',
+                alt: 'Second special picture together',
+                title: '💖 Another Special Picture 💖'
+            }
+        };
+
+        /**
+         * Generate a placeholder SVG image
+         * @param {string} text - Text to display
+         * @param {string} subtext - Subtext to display
+         * @returns {string} Data URL for SVG
+         */
+        function generatePlaceholderImage(text, subtext) {
+            return 'data:image/svg+xml,' + encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+                    <defs>
+                        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#1a1a2e"/>
+                            <stop offset="100%" style="stop-color:#16213e"/>
+                        </linearGradient>
+                    </defs>
+                    <rect fill="url(#bg)" width="400" height="300" rx="15"/>
+                    <text x="200" y="130" text-anchor="middle" fill="#ffb6c1" font-size="20" font-family="Georgia">${text}</text>
+                    <text x="200" y="170" text-anchor="middle" fill="#ff69b4" font-size="14" font-family="Georgia">${subtext}</text>
+                    <text x="200" y="220" text-anchor="middle" fill="#666" font-size="11" font-family="Georgia">Add your image in ImageConfig</text>
+                </svg>
+            `);
+        }
+
+        /**
+         * Get the image source for a popup
+         * @param {string} imageKey - 'firstImage' or 'secondImage'
+         * @returns {string} Image source URL
+         */
+        function getImageSource(imageKey) {
+            const config = ImageConfig[imageKey];
+            if (config && config.src && config.src.trim() !== '') {
+                return config.src;
+            }
+            // Return placeholder if no image configured
+            const placeholderText = imageKey === 'firstImage' 
+                ? '💕 First Special Image 💕' 
+                : '💖 Second Special Image 💖';
+            return generatePlaceholderImage(placeholderText, '(Your photo will appear here)');
+        }
+
+        // Flower size configurations - only medium and large
+        const FlowerSizes = ['medium', 'large'];
+
+        // Tulip color options
+        const TulipColors = ['red', 'pink', 'yellow', 'purple', 'white'];
+
+        // DOM Elements
+        const flowerCanvas = document.getElementById('flower-canvas');
+        const messageDisplay = document.getElementById('message-display');
+
+        // Throttle constant (ms) to prevent rapid flower creation
+        const TAP_THROTTLE = 100;
+
+        /**
+         * Generate a unique ID for each flower
+         */
+        function generateFlowerId() {
+            return 'flower-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        }
+
+        /**
+         * Get a random size for the flower
+         * @returns {string} 'medium' or 'large'
+         */
+        function getRandomSize() {
+            const randomIndex = Math.floor(Math.random() * FlowerSizes.length);
+            return FlowerSizes[randomIndex];
+        }
+
+        /**
+         * Get a random color for the tulip
+         * @returns {string} Color name
+         */
+        function getRandomColor() {
+            const randomIndex = Math.floor(Math.random() * TulipColors.length);
+            return TulipColors[randomIndex];
+        }
+
+        /**
+         * Get random flower state - mostly open, some closed
+         * @returns {string} 'open' or 'closed'
+         */
+        function getRandomFlowerState() {
+            // 70% open, 30% closed
+            return Math.random() < 0.7 ? 'open' : 'closed';
+        }
+
+        /**
+         * Create a tulip flower element
+         * Stems originate from one of two connection points in the vase
+         * @param {number} flowerX - X position where flower head should appear
+         * @param {number} flowerY - Y position where flower head should appear
+         * @param {string} size - Size category
+         * @param {string} color - Tulip color
+         * @returns {HTMLElement} The tulip element
+         */
+        function createTulipElement(flowerX, flowerY, size, color) {
+            // Two connection points inside the pot (invisible)
+            const vaseCenterX = window.innerWidth / 2;
+            const connectionPointY = window.innerHeight - 80; // Inside the pot
+            
+            // Randomly choose left or right connection point
+            const useLeftPoint = Math.random() < 0.5;
+            const connectionPointX = useLeftPoint 
+                ? vaseCenterX - 15  // Left point
+                : vaseCenterX + 15; // Right point
+            
+            // Calculate FROM connection point TO clicked position
+            const deltaX = flowerX - connectionPointX;
+            const deltaY = connectionPointY - flowerY; // Positive when flower is above
+            
+            // Stem length to reach flower position
+            const stemLength = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            
+            // Angle from vertical (0 = straight up, positive = right, negative = left)
+            const stemAngle = Math.atan2(deltaX, deltaY) * (180 / Math.PI);
+
+            // Create tulip container at the chosen CONNECTION POINT
+            const tulip = document.createElement('div');
+            tulip.className = `tulip tulip-${size} tulip-${color}`;
+            tulip.style.position = 'absolute';
+            tulip.style.left = `${connectionPointX}px`;
+            tulip.style.top = `${connectionPointY}px`;
+            tulip.style.pointerEvents = 'none';
+            tulip.style.zIndex = '2';
+            
+            // Randomly choose open (70%) or closed (30%) flower
+            const isOpen = Math.random() < 0.7;
+            tulip.classList.add(isOpen ? 'tulip-open' : 'tulip-closed');
+
+            // Create stem container that rotates toward flower position
+            const stemContainer = document.createElement('div');
+            stemContainer.style.position = 'absolute';
+            stemContainer.style.top = '0';
+            stemContainer.style.left = '0';
+            stemContainer.style.transformOrigin = 'top center';
+            stemContainer.style.transform = `rotate(${stemAngle}deg)`;
+
+            // Create straight stem going UP (negative Y direction)
+            const stem = document.createElement('div');
+            stem.className = 'tulip-stem';
+            stem.style.width = '4px';
+            stem.style.height = `${stemLength}px`;
+            stem.style.position = 'absolute';
+            stem.style.top = `${-stemLength}px`;
+            stem.style.left = '-2px';
+
+            stemContainer.appendChild(stem);
+
+            // Add leaves based on stem length - more leaves for longer stems
+            const numLeaves = Math.max(2, Math.min(Math.floor(stemLength / 60), 6));
+            
+            for (let i = 0; i < numLeaves; i++) {
+                const leaf = document.createElement('div');
+                leaf.className = 'tulip-leaf';
+                leaf.style.position = 'absolute';
+                
+                // Distribute leaves along the stem
+                const leafPosition = (i + 1) * (stemLength / (numLeaves + 1));
+                leaf.style.top = `${-leafPosition}px`;
+                
+                // Alternate left and right
+                if (i % 2 === 0) {
+                    leaf.style.left = '-10px';
+                    leaf.style.transform = 'rotate(-40deg)';
+                } else {
+                    leaf.style.left = '6px';
+                    leaf.style.transform = 'rotate(40deg)';
+                }
+                
+                stemContainer.appendChild(leaf);
+            }
+
+            // Create open tulip head at END of stem (top), counter-rotated to stay upright
+            const head = document.createElement('div');
+            head.className = 'tulip-head';
+            head.style.position = 'absolute';
+            head.style.top = `${-stemLength - 25}px`;
+            head.style.left = '0';
+            head.style.transform = `translateX(-50%) rotate(${-stemAngle}deg)`;
+            head.style.width = '40px';
+            head.style.height = '30px';
+
+            // Create 5 petals for open tulip
+            for (let i = 0; i < 5; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'tulip-petal';
+                head.appendChild(petal);
+            }
+
+            stemContainer.appendChild(head);
+            tulip.appendChild(stemContainer);
+
+            return tulip;
+        }
+
+        // ============================================
+        // Visual Polish - Sparkle Effects (Task 8.1)
+        // Requirements: 8.4
+        // ============================================
+
+        /**
+         * Create sparkle effect at a position
+         * @param {number} x - X position
+         * @param {number} y - Y position
+         */
+        function createSparkles(x, y) {
+            const sparkleContainer = document.createElement('div');
+            sparkleContainer.className = 'sparkle';
+            sparkleContainer.style.left = x + 'px';
+            sparkleContainer.style.top = y + 'px';
+            
+            // Create 6-8 sparkle particles
+            const numParticles = 6 + Math.floor(Math.random() * 3);
+            
+            for (let i = 0; i < numParticles; i++) {
+                const particle = document.createElement('div');
+                
+                // Alternate between round particles and star shapes
+                if (i % 3 === 0) {
+                    particle.className = 'sparkle-star';
+                } else {
+                    particle.className = 'sparkle-particle';
+                }
+                
+                // Random offset from center
+                const angle = (i / numParticles) * Math.PI * 2 + Math.random() * 0.5;
+                const distance = 15 + Math.random() * 25;
+                const offsetX = Math.cos(angle) * distance;
+                const offsetY = Math.sin(angle) * distance;
+                
+                particle.style.left = offsetX + 'px';
+                particle.style.top = offsetY + 'px';
+                particle.style.animationDelay = (i * 0.08) + 's';
+                
+                sparkleContainer.appendChild(particle);
+            }
+            
+            flowerCanvas.appendChild(sparkleContainer);
+            
+            // Remove sparkles after animation completes
+            setTimeout(function() {
+                if (sparkleContainer.parentNode) {
+                    sparkleContainer.parentNode.removeChild(sparkleContainer);
+                }
+            }, 1500);
+        }
+
+        /**
+         * Create ambient floating particles in the background
+         */
+        function createAmbientParticles() {
+            const numParticles = 15;
+            
+            for (let i = 0; i < numParticles; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'ambient-particle';
+                
+                // Random position
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = Math.random() * 100 + 'vh';
+                
+                // Random animation delay for variety
+                particle.style.animationDelay = (Math.random() * 8) + 's';
+                particle.style.animationDuration = (6 + Math.random() * 4) + 's';
+                
+                // Random size variation
+                const size = 2 + Math.random() * 4;
+                particle.style.width = size + 'px';
+                particle.style.height = size + 'px';
+                
+                document.body.appendChild(particle);
+            }
+        }
+
+        // Initialize ambient particles on page load
+        createAmbientParticles();
+
+        /**
+         * Create a flower at the specified position
+         * @param {number} clientX - Client X coordinate
+         * @param {number} clientY - Client Y coordinate
+         */
+        function createFlower(clientX, clientY) {
+            // Throttle flower creation
+            const now = Date.now();
+            if (now - AppState.lastTapTime < TAP_THROTTLE) {
+                return;
+            }
+            AppState.lastTapTime = now;
+
+            // Don't create flowers too close to the bottom (in the vase area)
+            if (clientY > window.innerHeight * 0.80) {
+                return;
+            }
+            
+            // Don't create flowers too close to the top (message area)
+            if (clientY < 80) {
+                return;
+            }
+            
+            // Get random size and color
+            const size = getRandomSize();
+            const color = getRandomColor();
+
+            // Create flower object
+            const flower = {
+                id: generateFlowerId(),
+                x: clientX,
+                y: clientY,
+                size: size,
+                color: color
+            };
+
+            // Create and add the tulip element
+            const tulipElement = createTulipElement(clientX, clientY, size, color);
+            tulipElement.id = flower.id;
+            flowerCanvas.appendChild(tulipElement);
+
+            // Create sparkle effect at flower head position
+            createSparkles(clientX, clientY);
+
+            // Add idle sway animation after bloom completes
+            setTimeout(function() {
+                tulipElement.classList.add('idle');
+            }, 700);
+
+            // Update state
+            AppState.flowers.push(flower);
+            AppState.flowerCount++;
+
+            // Update message based on flower count
+            updateMessage();
+        }
+
+        /**
+         * Update the message display based on flower count
+         * Requirements: 3.1, 3.2, 3.3, 3.4
+         */
+        function updateMessage() {
+            if (AppState.flowerCount >= 10 && !AppState.hasSeenFirstImage) {
+                // Trigger first popup when count reaches 10
+                showFirstImagePopup();
+            } else if (AppState.flowerCount >= 5) {
+                messageDisplay.textContent = 'Create 10 flowers! 💐';
+            } else {
+                messageDisplay.textContent = 'Tap to create flower 🌷';
+            }
+        }
+
+        /**
+         * Show the first image popup when 10 flowers are created
+         * Requirements: 5.1, 5.2
+         * Modified: Show question first, reveal image on Yes click
+         */
+        function showFirstImagePopup() {
+            AppState.currentPopup = 'first-question';
+            
+            // Update message to indicate milestone reached
+            messageDisplay.textContent = '💐 Beautiful garden! 💐';
+            
+            // Show the popup modal
+            const popupModal = document.getElementById('popup-modal');
+            const popupImage = document.getElementById('popup-image');
+            const popupTitle = document.getElementById('popup-title');
+            const cuteMessage = document.getElementById('cute-message');
+            const anotherBtn = document.getElementById('another-btn');
+            
+            // Set title asking if they want to see something special
+            popupTitle.textContent = '🌷 Do you want to see something special? 💕';
+            
+            // Hide the image initially
+            popupImage.classList.add('hidden');
+            
+            // Hide cute message and another button
+            cuteMessage.classList.add('hidden');
+            anotherBtn.classList.add('hidden');
+            
+            // Show Yes/No buttons
+            document.getElementById('yes-btn').style.display = 'inline-block';
+            document.getElementById('no-btn').style.display = 'inline-block';
+            document.querySelector('.popup-buttons').style.display = 'flex';
+            
+            // Preload image but don't show yet
+            popupImage.src = getImageSource('firstImage');
+            popupImage.alt = ImageConfig.firstImage.alt;
+            
+            // Show the modal
+            popupModal.classList.remove('hidden');
+            
+            // Initialize runaway button behavior
+            initRunawayButton();
+        }
+
+        // ============================================
+        // Runaway No Button Logic
+        // Requirements: 5.4, 7.1
+        // ============================================
+        
+        // Runaway button configuration
+        const RunawayConfig = {
+            threshold: 80,      // Distance threshold to trigger runaway
+            moveDistance: 100,  // How far the button moves
+            boundaryPadding: 20 // Padding from popup edges
+        };
+
+        /**
+         * Initialize the runaway No button behavior
+         * Tracks mouse/touch position and moves button away when cursor approaches
+         */
+        function initRunawayButton() {
+            const noBtn = document.getElementById('no-btn');
+            const popupContent = document.querySelector('.popup-content');
+            const buttonsContainer = document.querySelector('.popup-buttons');
+            
+            // Remove runaway class first to reset to normal position
+            noBtn.classList.remove('runaway-active');
+            noBtn.style.left = '';
+            noBtn.style.top = '';
+            
+            // Add event listeners for mouse movement
+            popupContent.addEventListener('mousemove', handleRunawayMouseMove);
+            popupContent.addEventListener('touchmove', handleRunawayTouchMove, { passive: false });
+        }
+
+        /**
+         * Handle mouse movement for runaway button
+         * @param {MouseEvent} event
+         */
+        function handleRunawayMouseMove(event) {
+            moveButtonAwayFromCursor(event.clientX, event.clientY);
+        }
+
+        /**
+         * Handle touch movement for runaway button
+         * @param {TouchEvent} event
+         */
+        function handleRunawayTouchMove(event) {
+            if (event.touches.length > 0) {
+                const touch = event.touches[0];
+                moveButtonAwayFromCursor(touch.clientX, touch.clientY);
+            }
+        }
+
+        /**
+         * Move the No button away from the cursor position
+         * Property 4: No Button Runaway Behavior
+         * For any cursor position that approaches within threshold distance,
+         * the button SHALL reposition itself to maintain distance
+         * 
+         * @param {number} cursorX - Cursor X position
+         * @param {number} cursorY - Cursor Y position
+         */
+        function moveButtonAwayFromCursor(cursorX, cursorY) {
+            const noBtn = document.getElementById('no-btn');
+            const popupContent = document.querySelector('.popup-content');
+            const buttonsContainer = document.querySelector('.popup-buttons');
+            
+            if (!noBtn || !popupContent || !buttonsContainer) return;
+            
+            const btnRect = noBtn.getBoundingClientRect();
+            const popupRect = popupContent.getBoundingClientRect();
+            const containerRect = buttonsContainer.getBoundingClientRect();
+            
+            // Calculate button center
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            const btnCenterY = btnRect.top + btnRect.height / 2;
+            
+            // Calculate distance from cursor to button center
+            const deltaX = btnCenterX - cursorX;
+            const deltaY = btnCenterY - cursorY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            
+            // If cursor is within threshold, move button away
+            if (distance < RunawayConfig.threshold && distance > 0) {
+                // Switch to absolute positioning if not already
+                if (!noBtn.classList.contains('runaway-active')) {
+                    // Get current position before switching to absolute
+                    const currentLeft = btnRect.left - containerRect.left;
+                    const currentTop = btnRect.top - containerRect.top;
+                    
+                    noBtn.classList.add('runaway-active');
+                    noBtn.style.left = currentLeft + 'px';
+                    noBtn.style.top = currentTop + 'px';
+                }
+                
+                // Calculate direction away from cursor (normalized)
+                const dirX = deltaX / distance;
+                const dirY = deltaY / distance;
+                
+                // Get current position
+                const currentLeft = parseFloat(noBtn.style.left) || 0;
+                const currentTop = parseFloat(noBtn.style.top) || 0;
+                
+                // Calculate new position
+                let newLeft = currentLeft + dirX * RunawayConfig.moveDistance;
+                let newTop = currentTop + dirY * RunawayConfig.moveDistance;
+                
+                // Constrain within popup bounds
+                const maxLeft = containerRect.width - btnRect.width - RunawayConfig.boundaryPadding;
+                const maxTop = popupRect.height - containerRect.top + popupRect.top - btnRect.height - RunawayConfig.boundaryPadding;
+                const minLeft = RunawayConfig.boundaryPadding;
+                const minTop = -containerRect.height;
+                
+                newLeft = Math.max(minLeft, Math.min(maxLeft, newLeft));
+                newTop = Math.max(minTop, Math.min(maxTop, newTop));
+                
+                // Apply new position
+                noBtn.style.left = newLeft + 'px';
+                noBtn.style.top = newTop + 'px';
+            }
+        }
+
+        /**
+         * Check if cursor is within threshold of the No button
+         * Used for property testing
+         * @param {number} cursorX
+         * @param {number} cursorY
+         * @returns {boolean}
+         */
+        function isCursorNearNoButton(cursorX, cursorY) {
+            const noBtn = document.getElementById('no-btn');
+            if (!noBtn) return false;
+            
+            const btnRect = noBtn.getBoundingClientRect();
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            const btnCenterY = btnRect.top + btnRect.height / 2;
+            
+            const deltaX = btnCenterX - cursorX;
+            const deltaY = btnCenterY - cursorY;
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            
+            return distance < RunawayConfig.threshold;
+        }
+
+        // Expose runaway functions for testing
+        window.moveButtonAwayFromCursor = moveButtonAwayFromCursor;
+        window.isCursorNearNoButton = isCursorNearNoButton;
+        window.RunawayConfig = RunawayConfig;
+
+        // ============================================
+        // Button Click Handlers
+        // Requirements: 5.3, 5.5, 7.2, 7.3
+        // ============================================
+
+        // Cute rejection messages array
+        // Requirements: 7.2, 7.4 - romantic and playful in tone
+        const CuteMessages = [
+            "Aww, but I made this just for you! 💕",
+            "Are you sure? There's more love to share! 🌹",
+            "My heart says you meant to click Yes! 💖",
+            "The flowers are sad now... 🥺🌷",
+            "But wait, there's something special! 💝",
+            "Your finger must have slipped! 😘",
+            "The tulips believe in us! 🌷💕",
+            "Love always finds a way! 💗",
+            "You're too cute to say no! 🥰",
+            "The garden needs your love! 🌸",
+            "Pretty please with flowers on top? 🌺",
+            "My petals are wilting without you! 🥀💕"
+        ];
+
+        /**
+         * Get a random cute message
+         * @returns {string}
+         */
+        function getRandomCuteMessage() {
+            const index = Math.floor(Math.random() * CuteMessages.length);
+            return CuteMessages[index];
+        }
+
+        /**
+         * Handle Yes button click
+         * Requirements: 5.3
+         * Modified: Reveal image on first Yes, show "another" button after first image
+         */
+        function handleYesClick() {
+            const popupModal = document.getElementById('popup-modal');
+            const popupImage = document.getElementById('popup-image');
+            const popupTitle = document.getElementById('popup-title');
+            const popupButtons = document.querySelector('.popup-buttons');
+            const anotherBtn = document.getElementById('another-btn');
+            
+            if (AppState.currentPopup === 'first-question') {
+                // User said Yes to seeing something special - reveal the first image
+                AppState.currentPopup = 'first';
+                AppState.hasSeenFirstImage = true;
+                
+                // Update title
+                popupTitle.textContent = ImageConfig.firstImage.title;
+                
+                // Show the image
+                popupImage.classList.remove('hidden');
+                
+                // Hide Yes/No buttons
+                popupButtons.style.display = 'none';
+                
+                // Show the "Want to see another thing?" button
+                anotherBtn.classList.remove('hidden');
+                
+            } else if (AppState.currentPopup === 'second-question') {
+                // User said Yes to seeing another thing - reveal the second image
+                AppState.currentPopup = 'second';
+                AppState.hasSeenSecondImage = true;
+                
+                // Update title
+                popupTitle.textContent = ImageConfig.secondImage.title;
+                
+                // Update and show the image
+                popupImage.src = getImageSource('secondImage');
+                popupImage.alt = ImageConfig.secondImage.alt;
+                popupImage.classList.remove('hidden');
+                
+                // Hide Yes/No buttons
+                popupButtons.style.display = 'none';
+                
+                // Hide another button, show a close/done button behavior
+                anotherBtn.textContent = 'Thank you Puchu 💕🌷';
+                anotherBtn.classList.remove('hidden');
+                
+            } else if (AppState.currentPopup === 'second') {
+                // Close the popup and reset for new cycle
+                popupModal.classList.add('hidden');
+                AppState.currentPopup = null;
+                
+                // Reset flower count and state to start fresh
+                AppState.flowerCount = 0;
+                AppState.hasSeenFirstImage = false;
+                AppState.hasSeenSecondImage = false;
+                
+                // Clear all flowers from canvas
+                const flowers = document.querySelectorAll('.tulip');
+                flowers.forEach(flower => flower.remove());
+                AppState.flowers = [];
+                
+                // Reset message to initial state
+                messageDisplay.textContent = 'Tap to create flower 🌷';
+            }
+        }
+
+        /**
+         * Handle "Want to see another thing?" button click
+         */
+        function handleAnotherClick() {
+            const popupImage = document.getElementById('popup-image');
+            const popupTitle = document.getElementById('popup-title');
+            const popupButtons = document.querySelector('.popup-buttons');
+            const anotherBtn = document.getElementById('another-btn');
+            const popupModal = document.getElementById('popup-modal');
+            const noBtn = document.getElementById('no-btn');
+            
+            if (AppState.currentPopup === 'first') {
+                // Show question for second image
+                AppState.currentPopup = 'second-question';
+                
+                // Update title to ask about second image
+                popupTitle.textContent = '✨ Want to see another special picture? 💖';
+                
+                // Hide the first image
+                popupImage.classList.add('hidden');
+                
+                // Preload second image
+                popupImage.src = getImageSource('secondImage');
+                popupImage.alt = ImageConfig.secondImage.alt;
+                
+                // Hide another button
+                anotherBtn.classList.add('hidden');
+                
+                // Reset No button position
+                noBtn.classList.remove('runaway-active');
+                noBtn.style.left = '';
+                noBtn.style.top = '';
+                
+                // Show Yes/No buttons again
+                document.getElementById('yes-btn').style.display = 'inline-block';
+                document.getElementById('no-btn').style.display = 'inline-block';
+                popupButtons.style.display = 'flex';
+                
+                // Re-initialize runaway button
+                initRunawayButton();
+                
+            } else if (AppState.currentPopup === 'second') {
+                // Close the popup and return to flower canvas
+                popupModal.classList.add('hidden');
+                AppState.currentPopup = null;
+                
+                // Reset flower count and state to start fresh
+                AppState.flowerCount = 0;
+                AppState.hasSeenFirstImage = false;
+                AppState.hasSeenSecondImage = false;
+                
+                // Clear all flowers from canvas
+                const flowers = document.querySelectorAll('.tulip');
+                flowers.forEach(flower => flower.remove());
+                AppState.flowers = [];
+                
+                // Reset message to initial state
+                messageDisplay.textContent = 'Tap to create flower 🌷';
+                
+                // Reset button text for next time
+                anotherBtn.textContent = 'Want to see another thing? 💕✨';
+            }
+        }
+
+        /**
+         * Handle No button click (if user manages to click it)
+         * Requirements: 5.5, 7.2, 7.3, 7.4
+         * - Show cute message with heart animation
+         * - After delay, show Yes/No buttons again (don't close modal)
+         */
+        function handleNoClick() {
+            const cuteMessage = document.getElementById('cute-message');
+            const popupButtons = document.querySelector('.popup-buttons');
+            const heartsContainer = document.getElementById('floating-hearts-container');
+            const noBtn = document.getElementById('no-btn');
+            
+            // Hide buttons temporarily
+            popupButtons.style.display = 'none';
+            
+            // Show cute message with animation
+            cuteMessage.textContent = getRandomCuteMessage();
+            cuteMessage.classList.remove('hidden');
+            cuteMessage.classList.add('animate');
+            
+            // Create floating hearts around the message
+            createFloatingHearts(heartsContainer, cuteMessage);
+            
+            // After delay, hide cute message and show buttons again
+            setTimeout(function() {
+                cuteMessage.classList.add('hidden');
+                cuteMessage.classList.remove('animate');
+                
+                // Clear floating hearts
+                heartsContainer.innerHTML = '';
+                
+                // Reset No button to normal position (remove absolute positioning)
+                noBtn.classList.remove('runaway-active');
+                noBtn.style.left = '';
+                noBtn.style.top = '';
+                
+                // Show buttons again
+                popupButtons.style.display = 'flex';
+            }, 2500);
+        }
+
+        /**
+         * Create floating hearts around the cute message
+         * Requirements: 7.4
+         * @param {HTMLElement} container - Container for hearts
+         * @param {HTMLElement} messageElement - The cute message element
+         */
+        function createFloatingHearts(container, messageElement) {
+            // Clear any existing hearts
+            container.innerHTML = '';
+            
+            // Heart emojis to use
+            const heartEmojis = ['💕', '💖', '💗', '💝', '❤️', '💘', '💓', '💞'];
+            
+            // Get message position for placing hearts around it
+            const messageRect = messageElement.getBoundingClientRect();
+            const containerRect = container.parentElement.getBoundingClientRect();
+            
+            // Create 8 floating hearts around the message
+            for (let i = 0; i < 8; i++) {
+                const heart = document.createElement('span');
+                heart.className = 'floating-heart';
+                heart.textContent = heartEmojis[i % heartEmojis.length];
+                
+                // Position hearts around the message in a circular pattern
+                const angle = (i / 8) * Math.PI * 2;
+                const radius = 80; // Distance from center
+                const centerX = (messageRect.left - containerRect.left) + messageRect.width / 2;
+                const centerY = (messageRect.top - containerRect.top) + messageRect.height / 2;
+                
+                const x = centerX + Math.cos(angle) * radius - 10;
+                const y = centerY + Math.sin(angle) * radius - 10;
+                
+                heart.style.left = x + 'px';
+                heart.style.top = y + 'px';
+                
+                container.appendChild(heart);
+            }
+        }
+
+        // Expose functions for testing
+        window.createFloatingHearts = createFloatingHearts;
+
+        /**
+         * Show the second image popup
+         * Requirements: 6.1, 6.2, 6.3, 6.4
+         */
+        function showSecondImagePopup() {
+            AppState.currentPopup = 'second';
+            
+            const popupModal = document.getElementById('popup-modal');
+            const popupImage = document.getElementById('popup-image');
+            const popupTitle = document.getElementById('popup-title');
+            const cuteMessage = document.getElementById('cute-message');
+            
+            // Set title for second popup
+            popupTitle.textContent = ImageConfig.secondImage.title;
+            
+            // Hide cute message if visible
+            cuteMessage.classList.add('hidden');
+            
+            // Reset button visibility
+            document.getElementById('yes-btn').style.display = 'inline-block';
+            document.getElementById('no-btn').style.display = 'inline-block';
+            document.querySelector('.popup-buttons').style.display = 'flex';
+            
+            // Set image from configuration (Task 8.2)
+            popupImage.src = getImageSource('secondImage');
+            popupImage.alt = ImageConfig.secondImage.alt;
+            
+            // Show the modal
+            popupModal.classList.remove('hidden');
+            
+            // Re-initialize runaway button behavior
+            initRunawayButton();
+        }
+
+        // Add event listeners for buttons
+        document.getElementById('yes-btn').addEventListener('click', handleYesClick);
+        document.getElementById('no-btn').addEventListener('click', handleNoClick);
+        document.getElementById('another-btn').addEventListener('click', handleAnotherClick);
+
+        // Expose functions for testing
+        window.handleYesClick = handleYesClick;
+        window.handleNoClick = handleNoClick;
+        window.handleAnotherClick = handleAnotherClick;
+        window.showSecondImagePopup = showSecondImagePopup;
+        window.CuteMessages = CuteMessages;
+        
+        // Expose ImageConfig for easy customization (Task 8.2)
+        window.ImageConfig = ImageConfig;
+        window.getImageSource = getImageSource;
+
+        /**
+         * Handle tap/click events on the canvas
+         * @param {Event} event - The tap or click event
+         */
+        function handleCanvasTap(event) {
+            event.preventDefault();
+
+            let clientX, clientY;
+
+            // Handle both touch and mouse events
+            if (event.type === 'touchstart' || event.type === 'touchend') {
+                const touch = event.changedTouches[0];
+                clientX = touch.clientX;
+                clientY = touch.clientY;
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+
+            createFlower(clientX, clientY);
+        }
+
+        // Event Listeners
+        flowerCanvas.addEventListener('click', handleCanvasTap);
+        flowerCanvas.addEventListener('touchstart', handleCanvasTap, { passive: false });
+
+        // Prevent default touch behaviors that might interfere
+        document.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        // ============================================
+        // Property-Based Testing
+        // ============================================
+        
+        /**
+         * Property Test Runner
+         * Runs property tests with configurable iterations
+         */
+        const PropertyTestRunner = {
+            results: [],
+            
+            /**
+             * Run a property test
+             * @param {string} name - Test name
+             * @param {Function} property - Property function that returns true/false
+             * @param {number} iterations - Number of test iterations (default 100)
+             */
+            runTest: function(name, property, iterations = 100) {
+                const result = {
+                    name: name,
+                    passed: true,
+                    iterations: iterations,
+                    failingExample: null
+                };
+                
+                for (let i = 0; i < iterations; i++) {
+                    try {
+                        const testResult = property();
+                        if (!testResult.passed) {
+                            result.passed = false;
+                            result.failingExample = testResult.example;
+                            break;
+                        }
+                    } catch (error) {
+                        result.passed = false;
+                        result.failingExample = { error: error.message };
+                        break;
+                    }
+                }
+                
+                this.results.push(result);
+                return result;
+            },
+            
+            /**
+             * Log all test results
+             */
+            logResults: function() {
+                console.log('=== Property Test Results ===');
+                this.results.forEach(result => {
+                    if (result.passed) {
+                        console.log(`✓ ${result.name} - PASSED (${result.iterations} iterations)`);
+                    } else {
+                        console.log(`✗ ${result.name} - FAILED`);
+                        console.log('  Failing example:', result.failingExample);
+                    }
+                });
+            }
+        };
+
+        /**
+         * Property 2: Valid Size Assignment
+         * Feature: flower-tap-page, Property 2: Valid Size Assignment
+         * Validates: Requirements 2.2
+         * 
+         * For any flower creation event, the assigned size SHALL be exactly 
+         * one of the three valid values: 'small', 'medium', or 'large'.
+         */
+        function runPropertyTestValidSizeAssignment() {
+            const validSizes = ['small', 'medium', 'large'];
+            
+            return PropertyTestRunner.runTest(
+                'Property 2: Valid Size Assignment',
+                function() {
+                    // Generate a random size using the same function used in flower creation
+                    const size = getRandomSize();
+                    
+                    // Check if the size is one of the valid values
+                    const isValid = validSizes.includes(size);
+                    
+                    return {
+                        passed: isValid,
+                        example: isValid ? null : { 
+                            generatedSize: size, 
+                            validSizes: validSizes 
+                        }
+                    };
+                },
+                100 // Run 100 iterations as per design spec
+            );
+        }
+
+        /**
+         * Run all property tests
+         * Call this function from browser console: runAllPropertyTests()
+         */
+        function runAllPropertyTests() {
+            PropertyTestRunner.results = []; // Reset results
+            
+            console.log('Running Property-Based Tests...');
+            console.log('Minimum 100 iterations per property test');
+            console.log('');
+            
+            // Run Property 2: Valid Size Assignment
+            runPropertyTestValidSizeAssignment();
+            
+            // Log all results
+            PropertyTestRunner.logResults();
+            
+            return PropertyTestRunner.results;
+        }
+
+        // Expose test functions globally for console access
+        window.runAllPropertyTests = runAllPropertyTests;
+        window.runPropertyTestValidSizeAssignment = runPropertyTestValidSizeAssignment;
+        window.PropertyTestRunner = PropertyTestRunner;
+    </script>
+</body>
+</html>
